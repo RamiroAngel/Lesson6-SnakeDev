@@ -71,7 +71,7 @@ function paint(ctx) {
     ctx.fillStyle = '#B85EAA';
     player.fill(ctx);
     // Draw walls
-    ctx.fillStyle = '#999';
+    ctx.fillStyle = '#2762CA';
     for (i = 0, l = wall.length; i < l; i += 1) {
         wall[i].fill(ctx);
     }
@@ -80,13 +80,17 @@ function paint(ctx) {
     food.fill(ctx);
     // Debug last key pressed
     ctx.fillStyle = '#B85EAA';
-    //ctx.fillText('Last Press: ' + lastPress, 0, 20);
+        //ctx.fillText('Last Press: ' + lastPress, 0, 20);
     // Draw score
     ctx.fillText('Score: ' + score, 0, 10);
     // Draw pause
     if (pause) {
         ctx.textAlign = 'center';
-        ctx.fillText('PAUSE', 150, 75);
+        if (gameover) {
+            ctx.fillText('GAME OVER', 150, 75);
+        } else {
+            ctx.fillText('PAUSE', 150, 75);
+        }
         ctx.textAlign = 'left';
     }
     /*  Why did he erased this?
