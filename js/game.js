@@ -151,7 +151,7 @@ function act() {
             body[0].y = 0;
         }
         if (body[0].x < 0) {
-            body[0].x =  - body[0].width;
+            body[0].x = canvas.width - body[0].width;
         }
         if (body[0].y < 0) {
             body[0].y = canvas.height - body[0].height;
