@@ -11,9 +11,13 @@ var KEY_ENTER = 13,
     gameover = true,
     dir = 0,
     score = 0,
-    wall = new Array(),
-    player = null,
-    food = null;
+    //wall = new Array(),
+    body = new Array(),
+    food = null,
+    iBody = new Image(),
+    iFood = new Image(),
+    aEat = new Audio(),
+    aDie = new Audio();
 
 window.requestAnimationFrame = (function () {
     return window.requestAnimationFrame ||
@@ -55,8 +59,10 @@ function random(max) {
 function reset() {
     score = 0;
     dir = 1;
-    player.x = 40;
-    player.y = 40;
+    body.length = 0;
+    body.push(new Rectangle(40, 40, 10, 10));
+    body.push(new Rectangle(0, 0, 10, 10));
+    body.push(new Rectangle(0, 0, 10, 10));
     food.x = random(canvas.width / 10 - 1) * 10;
     food.y = random(canvas.height / 10 - 1) * 10;
     gameover = false;
@@ -68,19 +74,23 @@ function paint(ctx) {
     ctx.fillStyle = '#2D5B71';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Draw player
-    ctx.fillStyle = '#B85EAA';
-    player.fill(ctx);
-    // Draw walls
-    ctx.fillStyle = '#2762CA';
-    for (i = 0, l = wall.length; i < l; i += 1) {
-        wall[i].fill(ctx);
+    //ctx.fillStyle = '#B85EAA';
+    for (i = 0, l = body.length; i < l; i += 1) {
+        //body[i].fill(ctx);
+        ctx.drawImage(iBody, body[i].x, body[i].y);
     }
+    // Draw walls
+    //ctx.fillStyle = '#2762CA';
+    //for (i = 0, l = wall.length; i < l; i += 1) {
+    //    wall[i].fill(ctx);
+    //}
     // Draw food
-    ctx.fillStyle = '#55E8B7';
-    food.fill(ctx);
+    //ctx.fillStyle = '#55E8B7';
+    //food.fill(ctx);
+    ctx.drawImage(iFood, food.x, food.y);
     // Debug last key pressed
     ctx.fillStyle = '#B85EAA';
-        //ctx.fillText('Last Press: ' + lastPress, 0, 20);
+    //ctx.fillText('Last Press: ' + lastPress, 0, 20);
     // Draw score
     ctx.fillText('Score: ' + score, 0, 10);
     // Draw pause
@@ -93,81 +103,85 @@ function paint(ctx) {
         }
         ctx.textAlign = 'left';
     }
-    /*  Why did he erased this?
-            // Draw square
-            ctx.fillStyle = '#B85EAA';
-            ctx.fillRect(x, y, 10, 10);
-    */
 }
 function act() {
-    /*  what happened with these lines?
-            x += 2;
-            if (x > canvas.width) {
-            x = 0;
-            }
-    */
-    var i,
-        l;
+    var i = 0,
+        l = 0;
     if (!pause) {
         // GameOver Reset
         if (gameover) {
             reset();
         }
+        // Move Body
+        for (i = body.length - 1; i > 0; i -= 1) {
+            body[i].x = body[i - 1].x;
+            body[i].y = body[i - 1].y;
+        }
         // Change Direction
-        if (lastPress == KEY_UP) {
+        if (lastPress == KEY_UP && dir != 2) {
             dir = 0;
         }
-        if (lastPress == KEY_RIGHT) {
+        if (lastPress == KEY_RIGHT && dir != 3) {
             dir = 1;
         }
-        if (lastPress == KEY_DOWN) {
+        if (lastPress == KEY_DOWN && dir != 0) {
             dir = 2;
         }
-        if (lastPress == KEY_LEFT) {
+        if (lastPress == KEY_LEFT && dir != 1) {
             dir = 3;
         }
-        // Move Rect
+        // Move Head
         if (dir == 0) {
-            player.y -= 10;
+            body[0].y -= 10;
         }
         if (dir == 1) {
-            player.x += 10;
+            body[0].x += 10;
         }
         if (dir == 2) {
-            player.y += 10;
+            body[0].y += 10;
         }
         if (dir == 3) {
-            player.x -= 10;
+            body[0].x -= 10;
         }
         // Out Screen
-        if (x > canvas.width) {
-            player.x = 0;
+        if (body[0].x > canvas.width - body[0].width) {
+            body[0].x = 0;
         }
-        if (y > canvas.height) {
-            player.y = 0;
+        if (body[0].y > canvas.height - body[0].height) {
+            body[0].y = 0;
         }
-        if (x < 0) {
-            player.x = canvas.width;
+        if (body[0].x < 0) {
+            body[0].x =  - body[0].width;
         }
-        if (y < 0) {
-            player.y = canvas.height;
+        if (body[0].y < 0) {
+            body[0].y = canvas.height - body[0].height;
+        }
+        // Wall Intersects
+        //for (i = 0, l = wall.length; i < l; i += 1) {
+        //    if (food.intersects(wall[i])) {
+        //        food.x = random(canvas.width / 10 - 1) * 10;
+        //        food.y = random(canvas.height / 10 - 1) * 10;
+        //    }
+        //    if (body[0].intersects(wall[i])) {
+        //        gameover = true;
+        //        pause = true;
+        //    }
+        //}
+        // Body Intersects
+        for (i = 2, l = body.length; i < l; i += 1) {
+            if (body[0].intersects(body[i])) {
+                gameover = true;
+                pause = true;
+                aDie.play();
+            }
         }
         // Food Intersects
-        if (player.intersects(food)) {
+        if (body[0].intersects(food)) {
+            body.push(new Rectangle(food.x, food.y, 10, 10));
             score += 1;
             food.x = random(canvas.width / 10 - 1) * 10;
             food.y = random(canvas.height / 10 - 1) * 10;
-        }
-        // Wall Intersects
-        for (i = 0, l = wall.length; i < l; i += 1) {
-            if (food.intersects(wall[i])) {
-                food.x = random(canvas.width / 10 - 1) * 10;
-                food.y = random(canvas.height / 10 - 1) * 10;
-            }
-            if (player.intersects(wall[i])) {
-                gameover = true;
-                pause = true;
-            }
+            aEat.play();
         }
     }
         // Pause/Unpause
@@ -188,14 +202,18 @@ function init() {
     // Get canvas and context
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
-    // Create player and food
-    player = new Rectangle(40, 40, 10, 10);
+    // Load assets
+    iBody.src = 'assets/body-2.png';
+    iFood.src = 'assets/fruit.png';
+    aEat.src = 'assets/chomp.oga';
+    aDie.src = 'assets/dies.oga';
+    // Create food
     food = new Rectangle(80, 80, 10, 10);
     // Create walls
-    wall.push(new Rectangle(100, 50, 10, 10));
-    wall.push(new Rectangle(100, 100, 10, 10));
-    wall.push(new Rectangle(200, 50, 10, 10));
-    wall.push(new Rectangle(200, 100, 10, 10));
+    //wall.push(new Rectangle(100, 50, 10, 10));
+    //wall.push(new Rectangle(100, 100, 10, 10));
+    //wall.push(new Rectangle(200, 50, 10, 10));
+    //wall.push(new Rectangle(200, 100, 10, 10));
     // Start game
     run();
     repaint();
