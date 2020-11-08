@@ -2,14 +2,16 @@ var KEY_ENTER = 13,
     KEY_LEFT = 37,
     KEY_UP = 38,
     KEY_RIGHT = 39,
-    KEY_DOWN = 40;
+    KEY_DOWN = 40,
+
     canvas = null,
     ctx = null,
     lastPress = null,
     pause = true,
-    x = 50,
-    y = 50,
-    dir = 0;
+    dir = 0,
+    score = 0,
+    player = null,
+    food = null;
 
 window.requestAnimationFrame = (function () {
     return window.requestAnimationFrame ||
@@ -22,30 +24,66 @@ window.requestAnimationFrame = (function () {
 document.addEventListener('keydown', function (evt) {
     lastPress = evt.which;
 }, false);
-
+function Rectangle(x, y, width, height) {
+    this.x = (x == null) ? 0 : x;
+    this.y = (y == null) ? 0 : y;
+    this.width = (width == null) ? 0 : width;
+    this.height = (height == null) ? this.width : height;
+        this.intersects = function (rect) {
+            if (rect == null) {
+                window.console.warn('Missing parameters on function intersects');
+            } else {
+                return (this.x < rect.x + rect.width &&
+                    this.x + this.width > rect.x &&
+                    this.y < rect.y + rect.height &&
+                    this.y + this.height > rect.y);
+            }
+        };
+        this.fill = function (ctx) {
+            if (ctx == null) {
+                window.console.warn('Missing parameters on function fill');
+            } else {
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        };
+}
+function random(max) {
+    return Math.floor(Math.random() * max);
+}
 function paint(ctx) {
     // Clean canvas
     ctx.fillStyle = '#2D5B71';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Draw square
+    // Draw player
     ctx.fillStyle = '#B85EAA';
-    ctx.fillRect(x, y, 10, 10);
+    player.fill(ctx);
+    // Draw food
+    ctx.fillStyle = '#55E8B7';
+    food.fill(ctx);
     // Debug last key pressed
     ctx.fillStyle = '#B85EAA';
     //ctx.fillText('Last Press: ' + lastPress, 0, 20);
+    // Draw score
+    ctx.fillText('Score: ' + score, 0, 10);
     // Draw pause
     if (pause) {
         ctx.textAlign = 'center';
         ctx.fillText('PAUSE', 150, 75);
         ctx.textAlign = 'left';
     }
+    /*  Why did he erased this?
+            // Draw square
+            ctx.fillStyle = '#B85EAA';
+            ctx.fillRect(x, y, 10, 10);
+    */
 }
 function act() {
-    /*x += 2;
-    if (x > canvas.width) {
-        x = 0;
-    }*/
-    //what happened with these lines?
+    /*  what happened with these lines?
+            x += 2;
+            if (x > canvas.width) {
+            x = 0;
+            }
+    */
     if (!pause) {
         // Change Direction
         if (lastPress == KEY_UP) {
@@ -62,29 +100,35 @@ function act() {
         }
         // Move Rect
         if (dir == 0) {
-            y -= 10;
+            player.y -= 10;
         }
         if (dir == 1) {
-            x += 10;
+            player.x += 10;
         }
         if (dir == 2) {
-            y += 10;
+            player.y += 10;
         }
         if (dir == 3) {
-            x -= 10;
+            player.x -= 10;
         }
         // Out Screen
         if (x > canvas.width) {
-            x = 0;
+            player.x = 0;
         }
         if (y > canvas.height) {
-            y = 0;
+            player.y = 0;
         }
         if (x < 0) {
-            x = canvas.width;
+            player.x = canvas.width;
         }
         if (y < 0) {
-            y = canvas.height;
+            player.y = canvas.height;
+        }
+        // Food Intersects
+        if (player.intersects(food)) {
+            score += 1;
+            food.x = random(canvas.width / 10 - 1) * 10;
+            food.y = random(canvas.height / 10 - 1) * 10;
         }
     }
         // Pause/Unpause
@@ -105,6 +149,9 @@ function init() {
     // Get canvas and context
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
+    // Create player and food
+    player = new Rectangle(40, 40, 10, 10);
+    food = new Rectangle(80, 80, 10, 10);
     // Start game
     run();
     repaint();
