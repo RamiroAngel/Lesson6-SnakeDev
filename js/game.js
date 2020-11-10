@@ -43,10 +43,10 @@ function sendScore(){
     }).then(function(response){
         return response.json()
     .then(function(parseResponse){
-        console.log(parseResponse);
+        console.log("Score sent successfully " + parseResponse);
     })
     }).catch(function(error){
-        console.log(error)
+        console.log("Error trying to send the score " + error)
     })
 }
 
@@ -226,6 +226,35 @@ function init() {
     // Start game
     run();
     repaint();
+}
+// Special Fruit shows after 3 regular fruits
+function checkFruit(){
+    if(!fruitActive){
+        foodCount += 1;
+    }
+    if(foodCount >= 3){
+        fruit.x = random(canvas.width / 10 - 1) * 10;
+        fruit.y = random(canvas.height / 10 - 1) * 10;
+        fruitActive = true;
+        foodCount = 0;
+        ridFruit();
+    }
+}
+// The fruit dissapears if you don't get it before 4 seconds
+function ridFruit(){
+    return new Promise((resolve,reject) => {
+        setTimeout(() => {
+            fruitActive = false;
+            fruit.x = -10;
+            fruit.y = -10;
+            resolve();
+            // if(!err){
+            //     resolve();
+            // } else{
+            //     reject('Something went wrong :(');
+            // }
+        },4000)
+    });
 }
 // Main Scene
 mainScene = new Scene();
